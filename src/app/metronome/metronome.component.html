@@ -1,0 +1,10 @@
+<p>metronome works!</p>
+<input
+    type="number" 
+    value="90" 
+    min="0" 
+    [(ngModel)]="beatsPerMinute"
+    (change)="updateInterval()" 
+    (keyup)="updateInterval()">
+<button (click)="start()">Start Metronome!</button>
+<button (click)="stop()">Stop Metronome!</button>
