@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { timer, Subscription } from 'rxjs';
+import { interval, Subscription, Observable } from 'rxjs';
 
 export enum Toggle {
   On,
@@ -53,7 +53,7 @@ export class MetronomeComponent implements OnInit, OnDestroy {
 
   start(): void {
     this.status = Toggle.On;
-    this.metronomeAgent = timer(0, this.interval).subscribe(() => this.playTick());
+    this.metronomeAgent = interval(this.interval).subscribe(() => this.playTick());
   }
 
   stop(): void {
@@ -66,7 +66,7 @@ export class MetronomeComponent implements OnInit, OnDestroy {
   }
 
   private startVerifyFocusAgent() {
-    this.verifyFocusAgent = timer(0, 100).subscribe(() => {
+    this.verifyFocusAgent = interval(this.interval).subscribe(() => {
       if (!document.hasFocus() && this.status === Toggle.On) {
         this.stop();
       }
