@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { interval, Subscription, Observable } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import * as Tone from 'tone';
 
 export enum Toggle {
   On,
@@ -11,65 +11,43 @@ export enum Toggle {
   templateUrl: './metronome.component.html',
   styleUrls: ['./metronome.component.css']
 })
-export class MetronomeComponent implements OnInit, OnDestroy {
+export class MetronomeComponent implements OnInit {
 
-  private tick: any;
-  private minuteInMiliseconds = 60000;
-  private interval: number;
-  private metronomeAgent: Subscription;
-  private verifyFocusAgent: Subscription;
-
-  public beatsPerMinute = 90;
-  public status = Toggle.Off;
+  beatsPerMinute = 90;
+  status = Toggle.Off;
 
   constructor() { }
 
   ngOnInit(): void {
-    this.tick = new Audio();
-    this.tick.src = './../../../assets/sounds/tick.mp3';
-    this.tick.load();
-    this.setInterval();
-    this.startVerifyFocusAgent();
+
+    this.setup();
+
   }
 
-  ngOnDestroy(): void {
-    this.metronomeAgent.unsubscribe();
-    this.verifyFocusAgent.unsubscribe();
-  }
+  setup(): void {
+    var loop = new Tone.Loop(function(time){
+      var player = new Tone.Player("./../../assets/sounds/tick.mp3").toMaster();
+      player.autostart = true;
+    }, "4n").start(0);
 
-  private setInterval() {
-    this.interval = this.minuteInMiliseconds / this.beatsPerMinute;
-  }
-
-  updateInterval() {
-    this.setInterval();
-
-    if (this.status === Toggle.On) {
-      // Reset metronome with new BPM
-      this.stop();
-      this.start();
-    }
+    this.setBpm();
   }
 
   start(): void {
-    this.status = Toggle.On;
-    this.metronomeAgent = interval(this.interval).subscribe(() => this.playTick());
+    Tone.Transport.start();
   }
 
   stop(): void {
-    this.status = Toggle.Off;
-    this.metronomeAgent.unsubscribe();
+    Tone.Transport.stop();
   }
 
-  private playTick() {
-    this.tick.play();
+  setBpm(): void {
+    Tone.Transport.bpm.value = this.beatsPerMinute;
   }
 
-  private startVerifyFocusAgent() {
-    this.verifyFocusAgent = interval(this.interval).subscribe(() => {
-      if (!document.hasFocus() && this.status === Toggle.On) {
-        this.stop();
-      }
-    });
+  updateBpm(): void {
+    this.setBpm();
+    this.stop();
+    this.start();
   }
 }

@@ -4,7 +4,7 @@
     value="90" 
     min="0" 
     [(ngModel)]="beatsPerMinute"
-    (change)="updateInterval()" 
-    (keyup)="updateInterval()">
+    (change)="updateBpm()" 
+    (keyup)="updateBpm()">
 <button (click)="start()">Start Metronome!</button>
 <button (click)="stop()">Stop Metronome!</button>
