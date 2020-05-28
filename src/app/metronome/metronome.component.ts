@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import * as Tone from 'tone';
+import StartAudioContext from 'startaudiocontext';
 
 export enum Toggle {
   On,
@@ -13,7 +14,7 @@ export enum Toggle {
 })
 export class MetronomeComponent implements OnInit {
 
-  beatsPerMinute = 90;
+  beatsPerMinute = 220;
   status = Toggle.Off;
 
   constructor() { }
@@ -25,12 +26,31 @@ export class MetronomeComponent implements OnInit {
   }
 
   setup(): void {
-    var loop = new Tone.Loop(function(time){
-      var player = new Tone.Player("./../../assets/sounds/tick.mp3").toMaster();
-      player.autostart = true;
-    }, "4n").start(0);
+    StartAudioContext(Tone.context, document.documentElement);
+    if (Tone.context.state !== 'running') {
+      Tone.context.resume();
+    }
 
     this.setBpm();
+
+    const tickSynth = this.buildTick();
+
+    Tone.Transport.scheduleRepeat((time) => {
+      tickSynth.triggerAttackRelease("B5", "16n", time);
+    }, '4n');
+  }
+
+  buildTick(): any {
+    const tickSynth =  new Tone.Synth().toMaster();
+    tickSynth.oscillator.type = 'sine';
+    tickSynth.envelope.attack = 0;
+    tickSynth.envelope.decay = 0.05;
+    tickSynth.envelope.sustain = 0;
+    tickSynth.envelope.release = 0.001;
+
+    tickSynth.toMaster();
+
+    return tickSynth;
   }
 
   start(): void {
@@ -39,10 +59,17 @@ export class MetronomeComponent implements OnInit {
 
   stop(): void {
     Tone.Transport.stop();
+    Tone.Transport.position = 0;
+  }
+
+  addBpm(value: number): void {
+    this.beatsPerMinute += value;
+    this.setBpm();
   }
 
   setBpm(): void {
     Tone.Transport.bpm.value = this.beatsPerMinute;
+    this.buildTick();
   }
 
   updateBpm(): void {
